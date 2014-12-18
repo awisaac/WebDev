@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+	<head>	
+		<title>COMP 484 Lab 4 by Andrew Isaac</title>
+		
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha512.js"></script>
+		
+		<script type="text/javascript">
+						
+			function init() {			
+				
+				// initial hidden elements
+				$('form').hide(); // hide all froms
+				$('#logoutButton').hide(); // log out button only available after login
+				
+				// click events - animations to hide/show different forms depending on logging in/registering/messaging activity			
+				// show login form
+				$("#loginButton1").click(
+					function() {
+						$("#loginForm").show(); // show login
+						$("#registerForm").hide(); // hide registration form
+						$("#welcome").text(""); // clears success message
+						$("#invalidCreds").text(""); // clears error message
+						resetForms(); // clears all from data
+					}
+				);
+				
+				// show registration form
+				$("#registerButton1").click(
+					function() {
+						$("#registerForm").show();
+						$("#loginForm").hide(); 
+						$("#welcome").text("");
+						$("#invalidCreds").text("");
+						resetForms();
+					}
+				);
+				
+				//logged out state is initial state
+				$("#logoutButton").click(
+					function() {
+						$('#mailForm').hide(); 
+						$('#welcome').text("");
+						$('#loginButton1').show();
+						$('#registerButton1').show();
+						$('#logoutButton').hide();
+						$('#messageUser').val("");
+						$('#messagePass').val("");	
+						resetForms();
+					}
+				);				
+				
+				// submit login credentials
+				$("#loginButton2").click(
+					function(e) {
+						
+						e.preventDefault();
+
+						var _username = $("#loginUsername").val();
+						var _password = $("#loginPassword").val();
+						
+						// check that creds meet requirements before validation attempt
+						if (checkUsername(_username) && checkPassword(_password)) {
+							
+							getLoginSalt(_username); // first retrieve salt							
+						}
+						else {
+							$("#invalidCreds").text( "Username and/or password is invalid.");							
+						}						
+						
+						$("#loginForm").hide();
+					}
+				);
+				
+				// register new credentials
+				$("#registerButton2").click(
+					function(e) {
+						e.preventDefault();
+						
+						var _username = $('#registerUsername').val();
+						var _password = $('#registerPassword').val();
+						
+						// check that credentials meet requirements before submitting to server
+						if (checkUsername(_username) && checkPassword(_password)) {
+							getRegisterSalt(_username);
+						}
+						else {
+							$("#invalidCreds").text( "Username and/or password is invalid. Usernames must be 5 - 15 alphanumeric characters. Passwords must be 8-15 characters and have at least 1 letter, 1 number, and 1 special character.");								
+						}
+						
+						$("#registerForm").hide();
+					}
+				);
+				
+				// submit form data
+				$('#messageSubmit').click(
+					function(e) {
+						
+						e.preventDefault();
+						
+						// the only data checked is email address format. all other message data is verified on server side 
+						if (validEmail()) {
+							$("#invalidCreds").text("");
+							transmitMessage();
+							resetForms();
+						}
+						else {
+							$("#invalidCreds").text("Error: Invalid email format.");
+							$("#welcome").text("");
+						}						
+					}
+				);					
+
+				populateSelects(); // fill out select input options
+			}
+			
+			// sends user message and other details to server
+			function transmitMessage() {
+			
+				var _username = $('#messageUser').val(); // already validated during login
+				var _password = $('#messagePass').val(); // already validated during login
+				var _email = $('#email').val(); // validated before function call
+				var _month = $('#month').val(); // select drop downs
+				var _date = $('#date').val();
+				var _year = $('#year').val();
+				var _hour = $('#hour').val();
+				var _minute = $('#minute').val();
+				var _message = $('#message').val(); // no specific requirements except less than 255 chars, enforced by html max-length tag
+				
+				$.post('lab4.php', 
+					// JSON data to be sent to server
+					{
+						task: "checkMessage",
+						username: _username,
+						password: _password,
+						email: _email,
+						month: _month,
+						date: _date,
+						year: _year,
+						hour: _hour,
+						minute: _minute,
+						message: _message
+					}
+
+				).error (
+					function() {
+						$("#invalidCreds").text("Error: Server can not be reached.");
+					}
+
+				).success (
+					function(response) {
+							
+						if (response.exists) { // username and creds were valid	
+							$('#welcome').text("Message sent.");
+							$('#welcome').show();
+							$('#invalidCreds').text("");
+						}
+					}					
+				);				
+			}
+			
+			// salt to help prevent dictionary/brute force attacks by ensuring unique password use
+			function getLoginSalt(_username) {
+				 
+				$.post('lab4.php', 
+					
+					{
+						task: "getSalt",
+						username: _username
+					}
+					
+				).error (
+					function() {
+						$("#invalidCreds").text("Error: Server can not be reached.");
+					}
+					
+				).success (
+				
+					function(response) {
+						checkCreds(response.salt); // success calls next function which verifies credentials
+					}
+				);
+			}
+			
+			// basically same as getLoginSalt, but calls registerCreds instead of checkCreds
+			function getRegisterSalt(_username) {
+				 
+				$.post('lab4.php', 
+					
+					{
+						task: "getSalt",
+						username: _username
+					}
+					
+				).error (
+					function() {
+						$("#invalidCreds").text("Error: Server can not be reached.");
+					}
+					
+				).success (
+				
+					function(response) {
+						registerCreds(response.salt);
+					}
+				);
+			}
+			
+			// sends username and salted hashed password to server to create new account
+			function registerCreds(_salt) {
+			
+				var _username = $('#registerUsername').val();
+				var _password = $('#registerPassword').val();
+				var _hashedPassword = CryptoJS.SHA512(_salt + _password).toString(); // client side hashing prepended with salt
+				
+				$.post('lab4.php', 
+					{
+						task: "createUser",
+						username: _username,
+						password: _hashedPassword,
+						salt: _salt
+					}
+
+				).error (
+					function() {
+						$("#invalidCreds").text("Error: Server can not be reached.");
+					}
+
+				).success (
+					function(response) {
+										
+						if (response.exists) { // username already exists
+							$("#invalidCreds").text("Username already exists.");							
+						}
+
+						else { // username did not exist, account created							
+							$('#registerForm').hide();
+							$('#welcome').text("Account Created. You can now login.");
+							$('#welcome').show();
+							$('#invalidCreds').text("");
+						}
+					}
+				);	
+			}
+			
+			// basically same as registerCreds, but to check that creds already exist instead
+			function checkCreds(_salt) {
+				
+				var _username = $("#loginUsername").val();
+				var _password = $("#loginPassword").val();
+				var _hashedPassword = CryptoJS.SHA512(_salt + _password).toString();
+			
+				$.post('lab4.php', 
+					{
+						task: "checkCreds",
+						username: _username,
+						password: _hashedPassword,
+					}
+
+				).error (
+					function() {
+						$("#invalidCreds").text("Error: Server can not be reached.");
+					}
+
+				).success (
+					function(response) {
+						
+						if (!response.exists) {
+							$("#invalidCreds").text("Username and/or password is invalid."); // bad creds
+						}
+						else {
+							// logged in state animations
+							$('#registerForm').hide();
+							$('#loginButton1').hide();
+							$('#registerButton1').hide();
+							$('#logoutButton').show();
+							$('#mailForm').show();
+							$('#welcome').text("Welcome " + _username + ".");
+							$('#welcome').show();
+							$('#invalidCreds').text("");
+							$('#messageUser').val(_username);
+							$('#messagePass').val(_hashedPassword);						
+						}
+					}
+				);
+			}
+			
+			function checkUsername(username) {
+				
+				var regex = /^[A-Za-z0-9]{5,15}$/; // at least 5 to 15 alphanumeric and only alphanumeric characters
+				return regex.test(username);
+			}
+				
+			function checkPassword(password) {
+				
+				var regex = /^.{8,15}$/ // 8 to 15 alphanumeric and special characters
+				var validPass = regex.test(password);
+					
+				if (validPass) {
+					regex = /[a-zA-Z]+/ // contains at least 1 letter
+					validPass = regex.test(password);
+				}
+					
+				if (validPass) {
+					regex = /[0-9]+/ // contains at least 1 digit
+					validPass = regex.test(password);
+				}
+					
+				if (validPass) {
+					regex =/[^a-zA-Z0-9]+/ // contains at least 1 non alphanumeric character
+					validPass = regex.test(password);
+				}	
+					
+				return validPass;
+			}
+			
+			function validEmail() { 
+				
+				var email = $('#email').val();
+				var regex = /^\S{1,20}@\S{1,20}\.\S{2,6}$/ // basic email form validation user@domain.toplevel
+				return regex.test(email);				
+			}
+			
+			// fill in the selects with options
+			function populateSelects() {
+				
+				var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+				var monthsHTML;
+				var datesHTML;
+				var yearsHTML;
+				var hoursHTML;
+					
+				for (var i = 0; i < 12; i++) {
+					monthsHTML = monthsHTML + "<option value=\"" + (i + 1) + "\">" + months[i] + "</option>";
+				}
+					
+				$("#month").html(monthsHTML);
+					
+				for (var i = 1; i < 32; i++) {
+					datesHTML = datesHTML + "<option value=\"" + i + "\">" + i + "</option>";
+				}
+					
+				$("#date").html(datesHTML);
+					
+				for (var i = 2014; i < 2050; i++) {
+					yearsHTML = yearsHTML + "<option value=\"" + i + "\">" + i + "</option>";
+				}
+					
+				$("#year").html(yearsHTML);
+					
+				for (var i = 0; i < 24; i++) {
+					hoursHTML = hoursHTML + "<option value=\"" + i + "\">" + i + "</option>";
+				}
+					
+				$("#hour").html(hoursHTML);					
+			}
+			
+			// clears form data after user submits any form data
+			function resetForms() {
+			
+				$('#welcome').text("");
+				$('#loginUsername').val("");
+				$('#loginPassword').val("");
+				$('#registerUsername').val("");
+				$('#registerPassword').val("");
+				$('#email').val("");
+				$('#message').val("");
+				document.getElementById('month').selectedIndex = 0; // Vanilla JS, since jQuery does not have a selectedIndex action
+				document.getElementById('date').selectedIndex = 0;
+				document.getElementById('year').selectedIndex = 0;
+				document.getElementById('hour').selectedIndex = 0;
+				document.getElementById('minute').selectedIndex = 0;
+			}
+			
+			$(document).ready(init);
+		</script>		
+	</head>
+	<body>
+		<div>
+			<span id="welcome"></span>
+			<button id="loginButton1">Login</button>
+			<button id ="registerButton1">Register</button>
+			<button id ="logoutButton">Logout</button>
+			<form id="loginForm">
+				<h3>Login to Existing Account</h3>
+				<label>Username: </label><input type="text" name="loginUsername" id="loginUsername"><br>
+				<label>Password: </label><input type="password" name="loginPassword" id="loginPassword">
+				<button id="loginButton2">Login</button>
+			</form>
+			<form id="registerForm">
+				<h3>Register a New Account</h3>
+				<label>Create a Username: </label><input type="text" name="registerUsername" id="registerUsername"><br>
+				<label>Create a Password: </label><input type="password" name="registerPassword" id="registerPassword">
+				<button id ="registerButton2">Create Account</button>
+			</form>
+			<span id="invalidCreds"></span>
+		</div>
+		
+		<div id="mailDiv">
+			<form id="mailForm">
+				<input type="hidden" name="username" id="messageUser">
+				<input type="hidden" name="password" id="messagePass">
+				<h3>Send a Message</h3>
+				<label>Email address: </label><input type="text" name="email" id="email"><br>
+				<label>Date: </label>
+				<select id="month" name="month"></select>/
+				<select id="date" name="date"></select>/
+				<select id="year" name="year"></select><br>
+				<label>Time: </label>
+				<select id="hour" name="hour"></select>:
+				<select id="minute" name="minute">
+					<option value="0">00</option>
+					<option value="30">30</option>
+				</select><br>
+				<label>Message: </label> <textarea id ="message" name="message" maxlength="255" rows="5" columns="40"></textarea><br>
+				<button id="messageSubmit">Send Message</button>
+			</form>
+		</div>				
+	</body>
+</html>

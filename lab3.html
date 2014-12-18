@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<title>COMP 484 Lab 3 by Andrew Isaac</title>
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyBcfOEvgGqv8mkYkKVsz3pvsXGBMuvL8a4&sensor=false"></script>
+	
+	<script type="text/javascript">
+    
+	var map; // displayed map
+	var oviatt; // csun buildings
+	var jacaranda;
+	var sierra;
+	var studentrc;
+	var vpac;
+	var nextQuestion = 0; // current question
+	var correctQuestions = 0; // correctly answered questions
+	    
+	function init() {
+	
+    	var mapOptions = {
+		    zoom: 16,
+		    center: new google.maps.LatLng(34.240100, -118.5293698), // centered on oviatt
+		    mapTypeId: google.maps.MapTypeId.SATELLITE, // sattellite imagery
+			disableDefaultUI: true, // map is fixed
+			draggable:false,
+			scrollwheel: false,
+			disableDoubleClickZoom: true
+		}
+		
+	  	map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions); // map is set into DOM div #map_canvas
+		
+		// csun building bounds
+		var jacarandaBounds = new google.maps.LatLngBounds();
+		jacarandaBounds.extend(new google.maps.LatLng(34.242137, -118.529562));
+		jacarandaBounds.extend(new google.maps.LatLng(34.240984, -118.527781));
+		
+		var oviattBounds =  new google.maps.LatLngBounds();
+		oviattBounds.extend(new google.maps.LatLng(34.240381, -118.530056));
+		oviattBounds.extend(new google.maps.LatLng(34.239690, -118.528683));
+		
+		var sierraBounds = new google.maps.LatLngBounds();
+		sierraBounds.extend(new google.maps.LatLng(34.238483, -118.531408));
+		sierraBounds.extend(new google.maps.LatLng(34.238093, -118.530099));
+		
+		var srcBounds = new google.maps.LatLngBounds();
+		srcBounds.extend(new google.maps.LatLng(34.240547, -118.525121));
+		srcBounds.extend(new google.maps.LatLng(34.239366, -118.524692));
+		
+		var vpacBounds = new google.maps.LatLngBounds();
+		vpacBounds.extend(new google.maps.LatLng(34.236582, -118.528693));
+		vpacBounds.extend(new google.maps.LatLng(34.235853, -118.527578));
+		
+		// fixed rectangle objects around buildings are set into map, not visible until dblClicked
+		jacaranda = new google.maps.Rectangle(
+			{ 
+			bounds: jacarandaBounds,
+			editable: false,
+			draggable: false,
+			visible: false
+			});
+		
+		jacaranda.setMap(map);
+						
+		oviatt = new google.maps.Rectangle(
+			{ 
+			bounds: oviattBounds,
+			editable: false,
+			draggable: false,
+			visible: false
+			});
+			
+		oviatt.setMap(map);
+		
+		sierra = new google.maps.Rectangle(
+			{ 
+			bounds: sierraBounds,
+			editable: false,
+			draggable: false,
+			visible: false
+			});
+			
+		sierra.setMap(map);
+				
+		studentrc = new google.maps.Rectangle(
+			{ 
+			bounds: srcBounds,
+			editable: false,
+			draggable: false,
+			visible: false
+			});
+		
+		studentrc.setMap(map);
+		
+		vpac = new google.maps.Rectangle(
+			{ 
+			bounds: vpacBounds,
+			editable: false,
+			draggable: false,
+			visible: false
+			});
+			
+		vpac.setMap(map);
+		
+		updateQuiz(0); // begins quiz
+	}
+	
+	// Highlight building either red or green depending on dblClick location
+	function doubleClick(e, building)
+	{
+		if (building.getBounds().contains(e.latLng)) {	// answered right		
+			building.setVisible();
+			building.setOptions({strokeColor:"#003300"});
+			document.getElementById("result").innerHTML = "Last question was correct!";
+			correctQuestions++;
+		}
+		else {  // answered wrong
+			building.setVisible();
+			building.setOptions({strokeColor:"#FF0000"});
+			document.getElementById("result").innerHTML = "Last question was wrong!";
+		}
+		
+		nextQuestion++; 
+		updateQuiz(nextQuestion); // go to next quiz question
+	}
+	
+	// Get the next question and add appropriate listener
+	function updateQuiz(questionNumber) {
+	
+		if (questionNumber == 0) {
+			google.maps.event.addListenerOnce(map, 'dblclick', function (e) {doubleClick(e, jacaranda)});
+			document.getElementById("question").innerHTML = "Question 1: Double click on Jacaranda Hall";
+		}
+		else if (questionNumber == 1) {
+			google.maps.event.addListenerOnce(map, 'dblclick', function (e) {doubleClick(e, oviatt)});
+			document.getElementById("question").innerHTML = "Question 2: Double click on Oviatt Library";
+		}
+		else if (questionNumber == 2) {
+			google.maps.event.addListenerOnce(map, 'dblclick', function (e) {doubleClick(e, sierra)});
+			document.getElementById("question").innerHTML = "Question 3: Double click on Sierra Hall";
+		}
+		else if (questionNumber == 3) {
+			google.maps.event.addListenerOnce(map, 'dblclick', function (e) {doubleClick(e, studentrc)});
+			document.getElementById("question").innerHTML = "Question 4: Double click on the Student Recreation Center";
+		}
+		else if (questionNumber == 4) {
+			google.maps.event.addListenerOnce(map, 'dblclick', function (e) {doubleClick(e, vpac)});
+			document.getElementById("question").innerHTML = "Question 5: Double click on the Valley Performing Arts Center";
+		}
+		else { // quiz complete - animate total correct over 5 sec			
+			document.getElementById("animated").innerHTML = "You answered " + correctQuestions + " out of 5 questions correctly!";
+			$("#animated").animate({right:'295px'}, 5000);
+		}		
+	}
+		
+	window.addEventListener("load", init, false); // waits until page is fully loaded to start javascript init function
+	
+	</script>
+	
+    <style type="text/css">
+    	h1   { text-align: center; }
+  		html { height: 100% }
+	    body { height: 100%; margin: 0; padding: 0; }
+  		#map_canvas { width:650px; height:650px;}
+		#quiz { width:650px; height: 650px; vertical-align: top;}
+		div.inline { display: inline-block; }
+		#animated { color: red; position: relative; text-align: right; font-size: 20px }		
+	</style>
+</head>
+<body>
+	<h1>CSUN Location Quiz</h1>
+	<div class = "inline" id="map_canvas"></div>
+	<div class = "inline" id="quiz">
+		<p id="question"></p>
+		<p id="result"></p>
+		<div id="animated"></div>
+	</div>
+	
+</body>
+</html>
+	

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<!-- HTML for Lab 2 COMP 484 - Andrew Isaac -->
+
+<html>
+<head>
+	<meta charset = "utf=8">
+	<title>Lab 2 COMP 484 - Andrew Isaac</title>
+
+	<style type ="text/css"> 
+		textarea {rows="4"; cols="15";}
+		span.error {color:red; font-weight:bold;}
+	</style>
+
+	<script type="text/javascript">
+
+	var firstOperand = 0; // maintains value while second operand is entered
+	var plusOperator = false; // operators 
+	var minusOperator = false; 
+	var multiplyOperator = false; 
+	var divideOperator = false; 
+
+	window.addEventListener("load",start,false); // start function runs when page is fully loaded
+
+	function start() { // adds click events to all buttons
+	
+		document.getElementById("result").addEventListener("click",function() {clearClickResult()},false); // clicking on result box clears value
+		document.getElementById("button1").addEventListener("click",function() {enterNumber(1)},false); // 0-9 numeric buttons
+		document.getElementById("button2").addEventListener("click",function() {enterNumber(2)},false);
+		document.getElementById("button3").addEventListener("click",function() {enterNumber(3)},false);
+		document.getElementById("button4").addEventListener("click",function() {enterNumber(4)},false);
+		document.getElementById("button5").addEventListener("click",function() {enterNumber(5)},false);
+		document.getElementById("button6").addEventListener("click",function() {enterNumber(6)},false);
+		document.getElementById("button7").addEventListener("click",function() {enterNumber(7)},false);
+		document.getElementById("button8").addEventListener("click",function() {enterNumber(8)},false);
+		document.getElementById("button9").addEventListener("click",function() {enterNumber(9)},false);
+		document.getElementById("button0").addEventListener("click",function() {enterNumber(0)},false);
+		document.getElementById("buttonClear").addEventListener("click",function() {clearResult()},false); // clears result and errors
+		document.getElementById("buttonEquals").addEventListener("click",function() {equalTo()},false); // = button runs operand operator operand
+		document.getElementById("buttonPlus").addEventListener("click",function() {operatorFunc("+")},false); // operator functions
+		document.getElementById("buttonMinus").addEventListener("click",function() {operatorFunc("-")},false);
+		document.getElementById("buttonTimes").addEventListener("click",function() {operatorFunc("*")},false);
+		document.getElementById("buttonDivide").addEventListener("click",function() {operatorFunc("/")},false);
+		document.getElementById("buttonSave").addEventListener("click",function() {saveData()},false); // transfers data from result box to totalHours span
+		document.getElementById("buttonSubmit").addEventListener("click",function() {validateForm()},false); // verifies that all input meets requirements
+		document.getElementById("calcForm").addEventListener("submit",function(event) {event.preventDefault()},false); // prevents default submit function
+		}
+
+	function enterNumber(val) { // digits entered by 0-9 buttons to create decimal number in result box 
+		
+		var validResult = validateResult();
+	
+		if (validResult) {		
+			document.getElementById("result").value = document.getElementById("result").value * 10 + val;
+			}
+		
+		else {
+			document.getElementById("result").value = "ERROR: press C";
+			}
+		}
+		
+	function validateResult() { // verifies that number entered meets requirements for decimal number
+	
+		var result = document.getElementById("result").value;
+		var regEx = /^\d*\.?\d*$/; // 0 or more digits, followed by 0 or 1 decimal, followed by 0 or more digits
+		return regEx.test(result); // boolean test to meet result requirements
+		}	
+
+	function clearClickResult() { // clicking on result field clears value
+		
+		document.getElementById("result").value="";
+		}
+
+	function validateFirst() { // first name must be all letters, start with an upper case and be followed by all lower case
+     
+		var firstName = document.getElementById("first").value;
+		var regEx = /^[A-Z][a-z]*$/; // Capital letter follows by 0 or more lower case letters
+
+		return regEx.test(firstName);
+		}
+
+	function validateLast() { // last name must be all letters, start with an upper case and be followed by all lower case
+    
+		var lastName = document.getElementById("last").value;
+		var regEx = /^[A-Z][a-z]*$/; // Capital letter follows by 0 or more lower case letters
+
+		return regEx.test(lastName);
+		}
+
+	function validateSTID() { // student ID must be 9 digits
+    
+		var stid = document.getElementById("stid").value;
+		var regEx = /^\d{9}$/; // 9 Digits
+
+		return regEx.test(stid);
+		}
+
+	function validateBio() { // bio must be 25 words or less
+	
+		bio = document.getElementById("bio").value;
+		bio = bio.replace(/(^\s*)|(\s*$)/gi,"");
+		bio = bio.replace(/[ ]{2,}/gi," ");
+		bio = bio.replace(/\n /,"\n");
+
+		// White spaces count regex sourced from: http://www.mediacollege.com/internet/javascript/text/count-words.html
+
+		return bio.split(' ').length <= 25;
+		}
+
+	function clearResult() { // clears result value and previously entered data
+
+		document.getElementById("result").value = "";
+		firstOperand = 0;
+		}	
+
+	function equalTo() { // validates result for second operand in result and performs operation selected
+	
+		var secondOperand = parseFloat(document.getElementById("result").value);
+		var validResult = validateResult();
+	
+		if (validResult) {
+	
+			if (plusOperator == true) {
+				document.getElementById("result").value = firstOperand + secondOperand;
+				}
+			
+			else if (minusOperator == true) {
+				document.getElementById("result").value = firstOperand - secondOperand;
+				}
+			
+			else if (multiplyOperator == true) {
+				document.getElementById("result").value = firstOperand * secondOperand;
+				}	
+			
+			else if (divideOperator == true) {
+				document.getElementById("result").value = firstOperand / secondOperand;
+				}	
+			}
+	
+		else {
+			document.getElementById("result").value = "ERROR: press C";
+			}
+		
+		firstOperand = 0; // reset all for next operation
+		plusOperator = false;
+		minusOperator = false;
+		multiplyOperator = false;
+		divideOperator = false;
+		}
+	
+	function operatorFunc(opSymbol) { // sets operator based on button pressed
+	
+		var validResult = validateResult();
+	
+		if (validResult) {
+			
+			firstOperand = parseFloat(document.getElementById("result").value);
+			document.getElementById("result").value = "";
+			
+			if (opSymbol == "+") {
+				plusOperator = true;
+				}
+			else if (opSymbol == "-") {
+				minusOperator = true;
+				}
+			else if (opSymbol == "*") {
+				multiplyOperator = true;
+				}
+			else if (opSymbol == "/") {
+				divideOperator = true;
+				}
+			}
+	
+		else {
+			document.getElementById("result").value = "ERROR: press C";
+			}
+		}
+	
+	function saveData() { // updates total hours if result field is valid: not 0 or a decimal number
+	
+		var validResult = validateResult();
+	
+		if (document.getElementById("result").value == 0 || !validResult) {
+
+			document.getElementById("Error5").innerHTML = "Not a valid number of hours worked." // Displays error
+			document.getElementById("totalHours").innerHTML = ""; // Clears total hours span
+			}
+	
+		else {
+		
+			document.getElementById("Error5").innerHTML = ""; // clears error
+			document.getElementById("totalHours").innerHTML = document.getElementById("result").value; //puts result into total hours
+			}
+		}
+	
+	function clearErrors() { // removes all errors
+	
+		document.getElementById("Error1").innerHTML = "";
+		document.getElementById("Error2").innerHTML = "";
+		document.getElementById("Error3").innerHTML = "";
+		document.getElementById("Error4").innerHTML = "";
+		document.getElementById("Error5").innerHTML = "";
+		}		
+		
+	function validateForm(event) { // checks form for valid entries and displays appropriate error. if all entries valid, alert pop up of entries
+	
+		clearErrors(); // removes all previous errors prior to error checking
+	
+		if (!validateFirst()) {	//invalid first name	
+			document.body.style.backgroundColor = "yellow"; //yellow background and error
+			document.getElementById("Error1").innerHTML = "First name must start with upper case letter and be all letters.";
+			}
+	
+		if (!validateLast()) { //invalid last name
+			document.body.style.backgroundColor = "yellow";
+			document.getElementById("Error2").innerHTML = "Last name must start with upper case letter and be all letters.";
+			}
+	
+		if (!validateSTID()) { //invalid student ID
+			document.body.style.backgroundColor = "yellow";
+			document.getElementById("Error3").innerHTML = "Student ID must be 9 digits.";
+			}
+	
+		if (!validateBio() || document.getElementById("bio").value == "") { // invalid bio
+			document.body.style.backgroundColor = "yellow";
+			document.getElementById("Error4").innerHTML = "Biography must be 25 or less words and cannot be empty.";
+			}
+	
+		if (validateFirst() && validateLast() && validateSTID() & validateBio()) { // all entries valid
+		
+			clearErrors(); // remove all errors
+			document.body.style.backgroundColor = "white"; // reset background to white
+			
+			 // string of valid entries
+			var alertString = "First name: " + document.getElementById("first").value +
+				 "\nLast Name: " + document.getElementById("last").value +
+				 "\nStudent ID: " + document.getElementById("stid").value +
+				 "\n Student Biography: " + document.getElementById("bio").value;
+			
+			if (document.getElementById("result").innerHTML != "") { // Calculator result only shown if value is present
+			
+				 alertString = alertString + "\nCalculator Result: " + document.getElementById("result").value;
+				 }
+			
+			if (document.getElementById("totalHours").innerHTML != "") { // total hours only shown if value is present
+				
+				alertString = alertString + "\nHours worked this week: " + document.getElementById("totalHours").innerHTML;
+				}
+			
+			window.alert(alertString);	 
+			}		
+		}
+	</script>
+	</head>
+
+	<body>
+		<form id="calcForm">
+		
+			<label>First Name: </label><input type="text" id="first"><span class="error" id="Error1"></span><br> <!-- text inputs and error spans-->
+			<label>Last Name: </label><input type="text" id="last"><span class="error" id="Error2"></span><br>
+			<label>Student ID: </label><input type="text" id="stid"><span class="error" id="Error3"></span><br>
+			<label>Biography: </label><textarea id="bio"></textarea><span class="error" id="Error4"></span><br>
+			<label>Result: </label><input type="text" id="result"><br>
+
+			<input type="button" id="button1" value="1"> <!-- buttons -->
+			<input type="button" id="button2" value="2">
+			<input type="button" id="button3" value="3">
+			<input type="button" id="button4" value="4"><br>
+			<input type="button" id="button5" value="5">
+			<input type="button" id="button6" value="6">
+			<input type="button" id="button7" value="7">
+			<input type="button" id="button8" value="8"><br>
+			<input type="button" id="button9" value="9">
+			<input type="button" id="button0" value="0">
+			<input type="button" id="buttonClear" value="C">
+			<input type="button" id="buttonEquals" value="="><br>
+			<input type="button" id="buttonPlus" value="+">
+			<input type="button" id="buttonMinus" value="-">
+			<input type="button" id="buttonTimes" value="*">
+			<input type="button" id="buttonDivide" value="/"><br>
+			<input type="button" id="buttonSave" value="Save"><br>
+		
+			<label>Hours Worked This Week: </label><span id="totalHours"></span><span class="error" id="Error5"></span><br>
+			<input type="submit" id="buttonSubmit" value="Submit">
+		</form>
+	</body>
+</html>

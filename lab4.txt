@@ -1,0 +1,39 @@
+COMP 484 Lab 4 by Andrew Isaac
+
+Files included:
+lab4.php - PHP web service: Interfaces with lab4.html for data transmission between database and client.
+lab4.html - Actual webpage sent to client. Lots of jQuery.
+mailer.php - Invoked every half hour by crontab to send previously unsent email messages determined by past date.
+lab4.mysql - Dump of database including users and messages tables.
+lab4.txt - This file.
+
+Project Complete: 100% 
+User can successfully register and login.  Upon login, user can send message to server. 
+Mailer.php successfully sends emails if message is past-dated and then marks message as sent.
+
+Extra Credit Completed: ABCD
+a. Client receives salt from server and is hashed on client side using crypto-JS SHA512.  Password is sent to server and hashed
+again using PHP's hash function with SHA512. This approach prevents the plain text user password from ever being transmitted to 
+or stored on the server. Since the client-side hashed password is really the de-facto password, it gets hashed again on the 
+server. In this case, if the database gets compromised, the hash sent by the client is still secure. This approach assumes the
+client side hashed password is transmitted securely using HTTPS, otherwise this approach is susceptible to man-in-the-middle 
+attacks.
+
+b. Using regular expressions on the client side via JavaScript, passwords are validated according to specification.
+Since the server never receives the plain-text password, password hash is checked to be a hexadecimal value with 128 chars 
+using PHP preg_match prior to being hashed again and then stored in database.
+
+c. All input is validated with regular expressions on server side and sanitized using mysqli_real_escape_string prior to reaching 
+mySQL database.
+
+d. All data is transmitted to and from server using JSON without refreshing page or submitting to another.
+
+
+
+  
+  
+
+ 
+
+
+ 

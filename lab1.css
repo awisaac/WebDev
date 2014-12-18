@@ -1,0 +1,136 @@
+/* CSS File for Lab 1 COMP 484 - Andrew Isaac */
+
+
+/* Yellow Highlighting of All Elements Except for Body and HTML */
+*:not(.htmlbody):hover {
+	background: #FFFF00;
+  	}
+
+/* HTML data is full height - needed to correctly size body elements */
+html {
+	height:100%;
+	}
+
+/* body background set to blue, body is full height, 
+   min-width of body set to 1200px to prevent minimum resizing issues
+   font is close approximation to example provided */
+
+body {
+	background-color: blue;
+	height: 100%;
+	min-width: 1200px;
+	font-family: "Arial", Times, sans-serif;
+	padding: auto;
+	margin: auto;
+	}
+
+/* white background box and padding, margins, and border close approximation to example provided */
+
+div.backgroundBox {
+	background-color: white;
+	margin: 25px;
+	padding: 25px;
+	border: 2px solid black;
+	max-width: 1900px;
+	}
+
+
+/* title box is light blue, text is aligned to the right, sizing, border, padding and margins close approximation */
+
+div.titleBox {
+	background-color: lightblue;
+	text-align: right;
+	margin: auto;
+	padding: 25px;
+	border: 1px solid black;
+	width: 90%;
+	}
+
+
+/* friends box is purple
+   10px solid black border
+   position, margin, padding, width close approximination to example provided
+   white text matching example */
+
+div.friendsBox {
+	background-color: purple;
+	padding: 25px;
+	margin-top: 25px;
+	margin-left: 2%;
+	border: 10px solid black;
+	width: 15%;
+	float: left;
+	top: 20%;
+	position: relative;
+	color: white;
+	}
+
+/* hidden alignment box which holds blog entries
+   position close approximination to example provided */
+
+div.blogBox {
+	width: 74%;
+	margin-left: 25%;
+	top: 0%;
+	position: relative;
+	}
+
+/* blog Entry boxes
+   background color is yellow
+   border is 6px solid black */
+
+div.blogEntry {
+	background-color: yellow;
+	padding: 25px;
+	margin: 25px;
+	border: 6px solid black;	
+	}
+
+/* link pseudocode to visited links turns darkgray since default purple was difficult to read with purple friends box background */
+
+a:visited {
+	color: darkgray;
+	}
+
+/* friends links turn white when hovered over*/
+
+a:hover {
+	color: white;
+	}
+
+/* subtitle in title box is set to 1.2em */
+
+h2.subtitleHead {
+	font-size: 1.2em;
+	}
+
+/* paragraph for blog entry is justified
+   position close approximination to example provided */
+
+p.pBlog {
+	margin-left: 2%;
+	width: 70%;
+	text-align: justify;
+	display: inline-block;
+	vertical-align: top;
+	}
+
+/* working solution to avoid having to float img next to paragraph
+   as inline paragraph block next to the inline blog entry paragraph
+   ideally block type should be div, but a div can not inline with a paragraph */
+ 
+p.songPic {
+	margin-left: 2%;
+	width: 25%;
+	display: inline-block;
+	vertical-align: top;
+	}
+
+/* image is resized to completely fill outer the parapgraph block */
+
+img.songPic {
+	width: 100%;
+	}
+
+
+	
